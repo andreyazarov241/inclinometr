@@ -20,3 +20,5 @@ class Mathematics:
 
         print("Прочитано:")
         print(data)
+
+# мы тут
