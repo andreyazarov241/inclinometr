@@ -1,0 +1,40 @@
+{
+    "WellHead": {
+        "Layers": {
+			"armm": {
+				"name": "twell",
+				"pos": "tpos",
+				"ground": "tgr",
+				"rotor": "trt",
+				"lic": "tfield",
+				"oilfield": "uwi",
+				"oilfield_name": "tfield"
+			},
+			"geobd": {
+				"name": "short_name",
+				"pos": "none",
+				"ground": "none",
+				"rotor": "elevation",
+				"lic": "license_area",
+				"oilfield": "uwi",
+				"oilfield_name": "field"
+			},
+		"Position_WORK": {
+				"name": "name",
+				"pos": "pos",
+				"ground": "ground",
+				"rotor": "rotor",
+				"lic": "tfield",
+				"oilfield": "oilfield"
+			}
+		}
+    },
+    "Target": {
+        "Layers": {
+            "default": {
+                "tid": "tid",
+                "oilfield": "tdfield"
+            }
+        }
+    }
+}
