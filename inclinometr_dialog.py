@@ -45,7 +45,8 @@ from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsVectorLayer, QgsField, QgsFields, QgsProject
 from PyQt5.QtCore import QVariant
 from qgis.core import QgsFeature, QgsGeometry, QgsPointXY
-
+from .mathematics import Mathematics
+from .excel_reader import ExcelReader
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(
@@ -59,12 +60,29 @@ FORM_CLASS, _ = uic.loadUiType(
 
 
 class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
+    def targetLayerChanged(self, layer):
 
+        self.cmbTarget.clear()
+    
+        if layer is None:
+            return
+    
+        if self.fieldCode == "":
+            return
+    
+        for feature in layer.getFeatures():
+    
+            if str(feature["oilfield"]) == self.fieldCode:
+    
+                self.cmbTarget.addItem(
+                    str(feature["tid"]),
+                    feature.id()
+                )
     def __init__(self, parent=None):
         """Constructor."""
 
         super(MainInclinometrDialog, self).__init__(parent)
-
+        self.math = Mathematics(self)
         self.setupUi(self)
         self.setFixedSize(self.size())        
         
@@ -78,11 +96,13 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
         # Инструмент выбора
         self.wellHeadIdentifyTool = None
         # Здесь будет храниться выбранное устье
+        self.targetIdentifyTool = None
+        # Здесь будет храниться выбранное устье
         self.selectedWellHead = None
         # Система координат слоя
         self.crsLayerWellHead = None
         # Выбранная система координат
-        self.crsTargetWellHead = None
+        self.crsOutputWellHead = None
         
         # Фильтр списка слоев - только слои точек
         self.mMapLayerComboBoxWellHead.setFilters(
@@ -103,7 +123,9 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
         self.mQgsProjectionSelectionWidgetWellHead.crsChanged.connect(
             self.wellHeadCrsChanged
         )
-        
+        self.mQgsProjectionSelectionWidgetTarget.crsChanged.connect(
+            self.targetCrsChanged
+        )
 
         # %% Вкладка --- Цели ---
 
@@ -163,8 +185,136 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
         self.layerOilfields = None
         
         self.btnCreateOilFieldsLayer.clicked.connect(self.createOilFieldsLayer)
-        # %%
         
+        self.btnSelectTarget.clicked.connect(
+            self.selectTarget
+        )
+        
+        # Система координат слоя целей
+        self.crsLayerTarget = None
+        
+        # Система координат вывода целей
+        self.crsOutputTarget = None
+        
+        
+        self.mQgsProjectionSelectionWidgetTarget.crsChanged.connect(
+            self.targetCrsChanged
+        )
+        
+        
+        self.selectedTargets = []
+        
+        self.excel = ExcelReader(self)
+
+
+        self.btnLoadInclinometry.clicked.connect(
+            self.math.loadInclinometry
+        )
+        # %%
+    def selectTarget(self):
+        """Выбор цели"""
+    
+        layer = QgsProject.instance().mapLayersByName("Targets_WORK")
+    
+        if not layer:
+            QMessageBox.warning(
+                self,
+                "Внимание",
+                "Не найден слой Targets_WORK."
+            )
+            return 
+        
+        self.layerTarget = layer[0]
+    
+        self.targetIdentifyTool = QgsMapToolIdentifyFeature(
+            iface.mapCanvas()
+        )
+    
+        self.targetIdentifyTool.setLayer(self.layerTarget)
+    
+        self.targetIdentifyTool.featureIdentified.connect(
+            self.targetSelected
+        )
+    
+        iface.mapCanvas().setMapTool(
+            self.targetIdentifyTool
+        )
+    def addTargetToTable(self, feature):
+    
+        row = self.tableTargets.rowCount()
+        self.tableTargets.insertRow(row)
+    
+        # ID цели
+        self.tableTargets.setItem(
+            row,
+            0,
+            QtWidgets.QTableWidgetItem(str(feature["tid"]))
+        )
+    
+        # Координаты
+        north = feature.geometry().asPoint().y()
+        east = feature.geometry().asPoint().x()
+    
+        transform = QgsCoordinateTransform(
+            self.layerTarget.crs(),
+            self.crsOutputTarget,
+            QgsProject.instance()
+        )
+    
+        targetPoint = transform.transform(
+            QgsPointXY(east, north)
+        )
+    
+        if self.crsOutputTarget.isGeographic():
+            northText = f"{targetPoint.y():.10f}"
+            eastText = f"{targetPoint.x():.10f}"
+        else:
+            northText = f"{targetPoint.y():.3f}"
+            eastText = f"{targetPoint.x():.3f}"
+    
+        self.tableTargets.setItem(
+            row,
+            1,
+            QtWidgets.QTableWidgetItem(northText)
+        )
+    
+        self.tableTargets.setItem(
+            row,
+            2,
+            QtWidgets.QTableWidgetItem(eastText)
+        )
+    
+        return northText, eastText
+    
+    
+    def targetSelected(self, feature):
+    
+        # Сохраняем выбранную цель
+        self.selectedTargets.append(feature)
+    
+        # Название цели
+        self.txtTargetName.setText(
+            str(feature["tid"])
+        )
+    
+        # Определяем СК слоя
+        crs = self.layerTarget.crs()
+    
+        self.crsLayerTarget = crs
+        self.crsOutputTarget = crs
+    
+        self.mQgsProjectionSelectionWidgetTarget.blockSignals(True)
+        self.mQgsProjectionSelectionWidgetTarget.setCrs(crs)
+        self.mQgsProjectionSelectionWidgetTarget.blockSignals(False)
+    
+        northText, eastText = self.addTargetToTable(feature)
+    
+        self.txtTargetNorth.setText(northText)
+        self.txtTargetEast.setText(eastText)
+    
+        iface.mapCanvas().unsetMapTool(
+            self.targetIdentifyTool
+        )
     def mMapLayerComboBoxWellHeadChanged(self, layer):
         """Метод обработки события выбора слоя устьев"""
         if layer is None:
@@ -178,7 +328,7 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
             # Получаем систему координат слоя
             crs = layer.crs()
             self.crsLayerWellHead = crs
-            self.crsTargetWellHead = crs
+            self.crsOutputWellHead = crs
             # Устанавливаем ее в виджет
             self.mQgsProjectionSelectionWidgetWellHead.setCrs(crs)
             # Включаем кнопку выбора устья
@@ -253,7 +403,7 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
             east = feature.geometry().asPoint().x()
             
             crs_l = self.layerWellHead.crs()
-            crs_t = self.crsTargetWellHead
+            crs_t = self.crsOutputWellHead
             
             # Создаем преобразование координат
             transform = QgsCoordinateTransform(crs_l, crs_t, QgsProject.instance())
@@ -264,7 +414,7 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
             # Пересчет
             targetPoint = transform.transform(sourcePoint)
             
-            if self.crsTargetWellHead.isGeographic():
+            if self.crsOutputWellHead.isGeographic():
                 self.txtWellHeadNorth.setText(f"{targetPoint.y():.10f}")
                 self.txtWellHeadEast.setText(f"{targetPoint.x():.10f}")
             else:
@@ -287,8 +437,8 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
     
     def wellHeadCrsChanged(self, crs):
         
-        self.crsLayerWellHead = self.crsTargetWellHead
-        self.crsTargetWellHead = crs
+        self.crsLayerWellHead = self.crsOutputWellHead
+        self.crsOutputWellHead = crs
         
         if self.txtWellHeadNorth.text() != '' and self.txtWellHeadEast.text() != '':
             north = float(self.txtWellHeadNorth.text())
@@ -297,7 +447,7 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
             # Создаем преобразование координат
             transform = QgsCoordinateTransform(
                 self.crsLayerWellHead,
-                self.crsTargetWellHead,
+                self.crsOutputWellHead,
                 QgsProject.instance()
             )
             
@@ -307,7 +457,7 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
             # Пересчет
             targetPoint = transform.transform(sourcePoint)
             
-            if self.crsTargetWellHead.isGeographic():
+            if self.crsOutputWellHead.isGeographic():
                 self.txtWellHeadNorth.setText(f"{targetPoint.y():.10f}")
                 self.txtWellHeadEast.setText(f"{targetPoint.x():.10f}")
             else:
@@ -319,27 +469,33 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
             #     "Внимание",
             #     f"Изменилась система координат! {targetPoint.y()} {targetPoint.x()}"
             # )
-
+        
      # Автоматическое заполнение списка целей в зависимости от слоя
-    def targetLayerChanged(self, layer):
-     
-         self.cmbTarget.clear()
-     
-         if layer is None:
-             return
-     
-         if self.fieldCode == "":
-             return
-     
-         for feature in layer.getFeatures():
-     
-             if str(feature["oilfield"]) == self.fieldCode:
-     
-                 self.cmbTarget.addItem(
-                     str(feature["tid"]),
-                     feature.id()
-                 )  
+    def targetCrsChanged(self, crs):
+
+        self.crsOutputTarget = crs
     
+        # очистить таблицу
+        self.tableTargets.setRowCount(0)
+    
+        # заполнить заново
+        for feature in self.selectedTargets:
+            self.addTargetToTable(feature)
+    
+        # если выбрана текущая цель — обновить поля справа
+        if self.selectedTargets:
+            feature = self.selectedTargets[-1]
+    
+            northText = self.tableTargets.item(
+                self.tableTargets.rowCount()-1, 1
+            ).text()
+    
+            eastText = self.tableTargets.item(
+                self.tableTargets.rowCount()-1, 2
+            ).text()
+    
+            self.txtTargetNorth.setText(northText)
+            self.txtTargetEast.setText(eastText)
     #%% ФУНКЦИИ ДЛЯ СОЗДАНИЯ РАБОЧЕГО СЛОЯ
     #Функции кнопок для создания рабочих слоев
     

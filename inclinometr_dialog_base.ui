@@ -32,11 +32,11 @@
       <number>-5</number>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="Ust">
       <attribute name="title">
-       <string>Устье</string>
+       <string>Позиция</string>
       </attribute>
       <widget class="QGroupBox" name="grbWellHeadInfo">
        <property name="enabled">
@@ -279,55 +279,138 @@
         <enum>Qt::Horizontal</enum>
        </property>
       </widget>
-      <widget class="QWidget" name="verticalLayoutWidget_2">
+      <widget class="QLabel" name="label_14">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>431</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Выбор цели с фильтрацией по месторождению в зависимости от выбранной позиции</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_15">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>140</y>
-         <width>421</width>
-         <height>122</height>
+         <width>431</width>
+         <height>16</height>
         </rect>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
+       <property name="text">
+        <string>Выбор цели по карте</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="horizontalLayoutWidget_3">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>160</y>
+         <width>421</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="1">
         <item>
-         <widget class="QTextEdit" name="textEdit">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="tabletTracking">
-           <bool>false</bool>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-          <property name="html">
-           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Информация по цели&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <widget class="QPushButton" name="btnSelectTarget">
+          <property name="text">
+           <string>Выбрать на карте</string>
           </property>
          </widget>
         </item>
+       </layout>
+      </widget>
+      <widget class="Line" name="line_4">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>190</y>
+         <width>421</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_16">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>210</y>
+         <width>421</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Выбор системы координат</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="horizontalLayoutWidget_4">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>230</y>
+         <width>421</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_15">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_12">
-          <item>
-           <widget class="QLabel" name="label_21">
-            <property name="text">
-             <string>Выбранная цель</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="txtTargetName">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QgsProjectionSelectionWidget" name="mQgsProjectionSelectionWidgetTarget"/>
         </item>
        </layout>
+      </widget>
+      <widget class="Line" name="line_5">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>270</y>
+         <width>421</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QTableWidget" name="tableTargets">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>290</y>
+         <width>411</width>
+         <height>192</height>
+        </rect>
+       </property>
+       <property name="columnCount">
+        <number>6</number>
+       </property>
+       <attribute name="horizontalHeaderCascadingSectionResizes">
+        <bool>false</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>ID</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Север</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Восток</string>
+        </property>
+       </column>
+       <column/>
+       <column/>
+       <column/>
       </widget>
      </widget>
      <widget class="QWidget" name="tab">
@@ -503,6 +586,117 @@ p, li { white-space: pre-wrap; }
        <property name="text">
         <string>Создать слой месторождений</string>
        </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tab_4">
+      <attribute name="title">
+       <string>Загрузка инклинометрии</string>
+      </attribute>
+      <widget class="QPushButton" name="btnLoadInclinometry">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>93</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>PushButton</string>
+       </property>
+      </widget>
+      <widget class="QTableWidget" name="tableInclinometry">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>80</y>
+         <width>351</width>
+         <height>371</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Нужно будет удалить</string>
+      </attribute>
+      <widget class="QWidget" name="verticalLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>20</y>
+         <width>421</width>
+         <height>188</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QTextEdit" name="textEdit">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="tabletTracking">
+           <bool>false</bool>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="html">
+           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Информация по цели&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="1,2">
+          <item>
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>Выбранная цель</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="txtTargetName">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,2">
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Север</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="txtTargetNorth"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="1,2">
+          <item>
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Восток</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="txtTargetEast"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
      </widget>
     </widget>
