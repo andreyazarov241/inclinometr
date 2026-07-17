@@ -1,6 +1,6 @@
 from openpyxl import load_workbook
 from PyQt5.QtWidgets import QFileDialog
-
+from qgis.PyQt import QtWidgets
 
 class ExcelReader:
 
@@ -38,7 +38,7 @@ class ExcelReader:
 
         sheet = workbook.active
 
-        data = []
+        self.data = []
 
         row = 18
 
@@ -53,7 +53,7 @@ class ExcelReader:
             zenith = sheet[f"B{row}"].value
             azimuth = sheet[f"C{row}"].value
 
-            data.append({
+            self.data.append({
                 "depth": float(depth),
                 "zenith": float(zenith),
                 "azimuth": float(azimuth)
@@ -65,10 +65,39 @@ class ExcelReader:
         print ("проверка")
         print("Глубина\tЗенит\tАзимут")
 
-        for row in data:
+        for row in self.data:
             print(
                 f"{row['depth']:.2f}\t"
                 f"{row['zenith']:.2f}\t"
                 f"{row['azimuth']:.2f}"
             )
-        return data
+        return self.data
+    
+    
+    def fill_table(self):
+        table = self.dialog.tableInclinometry
+        table.setRowCount(0)
+        for row_data in self.data:
+            row = table.rowCount()
+            table.insertRow(row)
+            table.setItem(
+                row,
+                0,
+                QtWidgets.QTableWidgetItem(
+                    f"{row_data['depth']:.2f}"
+                )
+            )
+            table.setItem(
+                row,
+                1,
+                QtWidgets.QTableWidgetItem(
+                    f"{row_data['zenith']:.2f}"
+                )
+            )
+            table.setItem(
+                row,
+                2,
+                QtWidgets.QTableWidgetItem(
+                    f"{row_data['azimuth']:.2f}"
+                )
+            )

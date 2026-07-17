@@ -210,6 +210,11 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
         self.btnLoadInclinometry.clicked.connect(
             self.math.loadInclinometry
         )
+
+
+        self.btnCalculateInclinometry.clicked.connect(
+            self.math.calculateInclinometry
+        )
         # %%
     def selectTarget(self):
         """Выбор цели"""
