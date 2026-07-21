@@ -1,6 +1,8 @@
 from math import sin, cos, sqrt, atan2, radians, acos, asin, tan
 
 from .excel_reader import ExcelReader
+from qgis.PyQt import QtWidgets
+
 
 
 class Mathematics:
@@ -35,11 +37,12 @@ class Mathematics:
         # Если таблица пустая — ничего не считаем
         if len(data) == 0:
             return
-    
+        # Таблица результатов
+        table = self.dialog.tableInclinometry
         # ==========================================================
         # Координаты устья из интерфейса
         # ==========================================================
-    
+        
         north = float(self.dialog.txtWellHeadNorth.text())
         east = float(self.dialog.txtWellHeadEast.text())
     
@@ -67,7 +70,25 @@ class Mathematics:
         first["tvd"] = tvd
     
         result.append(first)
-    
+        
+        # Записываем первую строку в таблицу
+        table.setItem(
+            0,
+            3,
+            QtWidgets.QTableWidgetItem(f"{north:.3f}")
+        )
+        
+        table.setItem(
+            0,
+            4,
+            QtWidgets.QTableWidgetItem(f"{east:.3f}")
+        )
+        
+        table.setItem(
+            0,
+            5,
+            QtWidgets.QTableWidgetItem(f"{tvd:.3f}")
+        )
         # ==========================================================
         # Расчет остальных точек
         # ==========================================================
@@ -160,7 +181,25 @@ class Mathematics:
             newRow["tvd"] = tvd
     
             result.append(newRow)
-    
+
+            # Записываем рассчитанные координаты в таблицу
+            table.setItem(
+                i,
+                3,
+                QtWidgets.QTableWidgetItem(f"{north:.3f}")
+            )
+            
+            table.setItem(
+                i,
+                4,
+                QtWidgets.QTableWidgetItem(f"{east:.3f}")
+            )
+            
+            table.setItem(
+                i,
+                5,
+                QtWidgets.QTableWidgetItem(f"{tvd:.3f}")
+            )
         # ==========================================================
         # Вывод результата
         # ==========================================================
@@ -181,3 +220,144 @@ class Mathematics:
                 f"{row['east']:12.3f}\t"
                 f"{row['tvd']:12.3f}"
             )
+
+
+    # def calculationDeviation(self):
+    #     """
+    #     Подготовка таблицы расчета отклонений.
+    #     """
+
+    #     sourceTable = self.dialog.tableTargets
+    #     resultTable = self.dialog.tableCalculationDeviation
+
+    #     # Очистить старые результаты
+    #     resultTable.setRowCount(0)
+
+    #     # Количество целей
+    #     rows = sourceTable.rowCount()
+
+    #     for row in range(rows):
+
+    #         # Добавляем новую строку
+    #         resultTable.insertRow(row)
+
+    #         # ID цели (0 столбец таблицы целей)
+    #         idItem = sourceTable.item(row, 0)
+
+    #         # TVD (3 столбец таблицы целей)
+    #         tvdItem = sourceTable.item(row, 3)
+
+    #         if tvdItem:
+    #             resultTable.setItem(
+    #                 row,
+    #                 0,
+    #                 QtWidgets.QTableWidgetItem(tvdItem.text())
+    #             )
+
+    #         if idItem:
+    #             resultTable.setItem(
+    #                 row,
+    #                 1,
+    #                 QtWidgets.QTableWidgetItem(idItem.text())
+    #             )
+
+
+    def calculationDeviation(self):
+        """
+        Расчет координат траектории на глубине целей.
+        """
+
+        sourceTable = self.dialog.tableTargets
+        resultTable = self.dialog.tableCalculationDeviation
+
+        # Очистить старые результаты
+        resultTable.setRowCount(0)
+
+        # Количество целей
+        rows = sourceTable.rowCount()
+
+        for row in range(rows):
+
+            # Добавляем новую строку
+            resultTable.insertRow(row)
+
+            # ID цели (0 столбец таблицы целей)
+            idItem = sourceTable.item(row, 0)
+
+            # TVD (3 столбец таблицы целей)
+            tvdItem = sourceTable.item(row, 3)
+
+            if tvdItem:
+                resultTable.setItem(
+                    row,
+                    0,
+                    QtWidgets.QTableWidgetItem(tvdItem.text())
+                )
+
+            if idItem:
+                resultTable.setItem(
+                    row,
+                    1,
+                    QtWidgets.QTableWidgetItem(idItem.text())
+                )
+
+        # первые строки таблицы записаны , начинаем расчет координат и отклонений
+
+        tableTargets = self.dialog.tableCalculationDeviation
+        tableInclin = self.dialog.tableInclinometry
+
+        # Проходим по всем целям
+        for rowTarget in range(tableTargets.rowCount()):
+
+            # Глубина цели
+            targetTVD = float(
+                tableTargets.item(rowTarget, 0).text()
+            )
+
+            # ----------------------------------------
+            # Ищем две соседние строки
+            # ----------------------------------------
+
+            for row in range(tableInclin.rowCount() - 1):
+
+                tvd1 = float(tableInclin.item(row, 5).text())
+                tvd2 = float(tableInclin.item(row + 1, 5).text())
+
+                if tvd1 <= targetTVD <= tvd2:
+
+                    north1 = float(tableInclin.item(row, 3).text())
+                    east1  = float(tableInclin.item(row, 4).text())
+
+                    north2 = float(tableInclin.item(row + 1, 3).text())
+                    east2  = float(tableInclin.item(row + 1, 4).text())
+
+                    # ----------------------------------------
+                    # Коэффициент интерполяции
+                    # ----------------------------------------
+
+                    k = (targetTVD - tvd1) / (tvd2 - tvd1)
+
+                    # ----------------------------------------
+                    # Интерполяция координат
+                    # ----------------------------------------
+
+                    north = north1 + k * (north2 - north1)
+                    east  = east1 + k * (east2 - east1)
+
+                    # ----------------------------------------
+                    # Запись в таблицу
+                    # ----------------------------------------
+
+                    tableTargets.setItem(
+                        rowTarget,
+                        3,
+                        QtWidgets.QTableWidgetItem(f"{north:.3f}")
+                    )
+
+                    tableTargets.setItem(
+                        rowTarget,
+                        4,
+                        QtWidgets.QTableWidgetItem(f"{east:.3f}")
+                    )
+
+                    break

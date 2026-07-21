@@ -24,7 +24,7 @@
 
 import os
 import json
-
+import random
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
 
@@ -215,6 +215,9 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
         self.btnCalculateInclinometry.clicked.connect(
             self.math.calculateInclinometry
         )
+        self.btnCalculateDeviation.clicked.connect(
+            self.math.calculationDeviation
+        )
         # %%
     def selectTarget(self):
         """Выбор цели"""
@@ -288,7 +291,11 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
             2,
             QtWidgets.QTableWidgetItem(eastText)
         )
-    
+        self.tableTargets.setItem(
+            row,
+            3,
+            QtWidgets.QTableWidgetItem(str(feature["ttvd"]))
+        )
         return northText, eastText
     
     
@@ -697,6 +704,7 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
         fields.append(QgsField("tid", QVariant.String))
         fields.append(QgsField("oilfield", QVariant.String))
         fields.append(QgsField("source", QVariant.String))
+        fields.append(QgsField("ttvd", QVariant.String))
     
         dp.addAttributes(fields)
         self.layerTargets.updateFields()
@@ -765,7 +773,15 @@ class MainInclinometrDialog(QtWidgets.QDialog, FORM_CLASS):
                 newFeature["tid"] = self.getMappedValue(feature, mapping, "tid")
                 newFeature["oilfield"] = self.getMappedValue(feature, mapping, "oilfield").split("_")[0]
                 newFeature["source"] = layer.name()
-            
+                #newFeature["ttvd"] = self.getMappedValue(feature, mapping, "ttvd")
+                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                # ДОБАВЛЯЕТ РАНДОМНЫЕ ЗНАЧЕНИЯ ТОЛЬКО ДЛЯ РАСЧЕТОВ ТЕСТА ОТКЛОНЕНИЙ ИНКЛИНЛОМЕТРИИ (НУЖНО БУДЕТ УДАЛИТЬ)!!!
+                ttvd = self.getMappedValue(feature, mapping, "ttvd")
+                if str(ttvd).strip() in ("", "NULL", "None"):
+                    ttvd = random.randint(-100, -2000)
+                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                
+                newFeature["ttvd"] = str(ttvd)
                 features_to_add.append(newFeature)
     
         dp.addFeatures(features_to_add)

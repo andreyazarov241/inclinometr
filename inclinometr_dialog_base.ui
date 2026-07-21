@@ -388,7 +388,7 @@
         </rect>
        </property>
        <property name="columnCount">
-        <number>6</number>
+        <number>7</number>
        </property>
        <attribute name="horizontalHeaderCascadingSectionResizes">
         <bool>false</bool>
@@ -406,6 +406,11 @@
        <column>
         <property name="text">
          <string>Восток</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>TVD</string>
         </property>
        </column>
        <column/>
@@ -647,6 +652,67 @@
        </property>
        <property name="text">
         <string>Расчет инклинометрии</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tab_5">
+      <attribute name="title">
+       <string>Расчет отклонений</string>
+      </attribute>
+      <widget class="QTableWidget" name="tableCalculationDeviation">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>80</y>
+         <width>381</width>
+         <height>351</height>
+        </rect>
+       </property>
+       <property name="columnCount">
+        <number>6</number>
+       </property>
+       <column>
+        <property name="text">
+         <string>Глубина</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Цель</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Свойсива</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Север</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Восток</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Отметка</string>
+        </property>
+       </column>
+      </widget>
+      <widget class="QPushButton" name="btnCalculateDeviation">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>40</y>
+         <width>381</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Расчет отклонений</string>
        </property>
       </widget>
      </widget>

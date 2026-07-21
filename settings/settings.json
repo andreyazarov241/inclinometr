@@ -33,7 +33,8 @@
         "Layers": {
             "default": {
                 "tid": "tid",
-                "oilfield": "tdfield"
+                "oilfield": "tdfield",
+				"ttvd": "ttvd"
             }
         }
     }
