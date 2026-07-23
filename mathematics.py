@@ -1,15 +1,44 @@
-from math import sin, cos, sqrt, atan2, radians, acos, asin, tan
+from math import sin, cos, sqrt, atan2, radians, acos, asin, tan, degrees
 
 from .excel_reader import ExcelReader
 from qgis.PyQt import QtWidgets
-
-
 
 class Mathematics:
 
     def __init__(self, dialog):
         self.dialog = dialog
         self.excel = ExcelReader(dialog)
+        # ==========================================================
+        # tableTargets
+        # ==========================================================
+
+        self.COL_TARGET_ID =    0
+        self.COL_TARGET_NORTH = 1
+        self.COL_TARGET_EAST =  2
+        self.COL_TARGET_TVD =   3
+
+        # ==========================================================
+        # tableInclinometry
+        # ==========================================================
+
+        self.COL_INCLIN_DEPTH =         0
+        self.COL_INCLIN_ZENITH =        1
+        self.COL_INCLIN_AZIMUTH =       2
+        self.COL_INCLIN_DIRECTIONAL =   3
+        self.COL_INCLIN_DATA =          4 
+        self.COL_INCLIN_NORTH =         5
+        self.COL_INCLIN_EAST =          6
+        self.COL_INCLIN_TVD =           7
+
+        # ==========================================================
+        # tableCalculationDeviation
+        # ==========================================================
+
+        self.COL_RESULT_TVD =       0
+        self.COL_RESULT_ID =        1
+        self.COL_RESULT_NORTH =     2
+        self.COL_RESULT_EAST =      3
+        self.COL_RESULT_DEVIATION = 4
 
     def loadInclinometry(self):
 
@@ -30,13 +59,18 @@ class Mathematics:
         Расчет траектории методом минимальной кривизны.
         Формулы используются согласно методическому пособию.
         """
-    
+
         # Таблица инклинометрии
         data = self.excel.data
     
         # Если таблица пустая — ничего не считаем
         if len(data) == 0:
             return
+        # Угол сближения меридианов (градусы)
+        try:
+            convergence = float(self.dialog.txtConvergenceMeridian.text())
+        except ValueError:
+            convergence = 0.0
         # Таблица результатов
         table = self.dialog.tableInclinometry
         # ==========================================================
@@ -64,7 +98,9 @@ class Mathematics:
         first["depth"] = data[0]["depth"]
         first["zenith"] = data[0]["zenith"]
         first["azimuth"] = data[0]["azimuth"]
-    
+        first["directional"] = first["azimuth"] + convergence
+        # чтобы угол был в диапазоне 0...360
+        first["directional"] %= 360
         first["north"] = north
         first["east"] = east
         first["tvd"] = tvd
@@ -74,20 +110,25 @@ class Mathematics:
         # Записываем первую строку в таблицу
         table.setItem(
             0,
-            3,
+            self.COL_INCLIN_NORTH,
             QtWidgets.QTableWidgetItem(f"{north:.3f}")
         )
         
         table.setItem(
             0,
-            4,
+            self.COL_INCLIN_EAST,
             QtWidgets.QTableWidgetItem(f"{east:.3f}")
         )
         
         table.setItem(
             0,
-            5,
+            self.COL_INCLIN_TVD,
             QtWidgets.QTableWidgetItem(f"{tvd:.3f}")
+        )
+        table.setItem(
+            0,
+            self.COL_INCLIN_DIRECTIONAL,
+            QtWidgets.QTableWidgetItem(f"{first['directional']:.3f}")
         )
         # ==========================================================
         # Расчет остальных точек
@@ -122,12 +163,15 @@ class Mathematics:
     
             A1 = radians(p1["azimuth"])
             A2 = radians(p2["azimuth"])
+
+            dir1 = radians((p1["azimuth"] + convergence) % 360)
+            dir2 = radians((p2["azimuth"] + convergence) % 360)
     
             # =====================================================
             # Угол β между двумя измерениями
             # =====================================================
     
-            cos_beta = cos(I2-I1) - sin(I1) * sin(I2) * (1-cos(A2-A1))
+            cos_beta = cos(I2-I1) - sin(I1) * sin(I2) * (1-cos(dir2-dir1))
 
     
             # Из-за ошибок округления значение может выйти
@@ -144,8 +188,8 @@ class Mathematics:
                 # =====================================================
                 # Приращения координат методом средних углов
                 # =====================================================
-                dNorth = dMD * sin((I1+I2) /2) * cos((A1+A2) /2)
-                dEast = dMD * sin((I1+I2) /2) * sin((A1+A2) /2)
+                dNorth = dMD * sin((I1+I2) /2) * cos((dir1+dir2) /2)
+                dEast = dMD * sin((I1+I2) /2) * sin((dir1+dir2) /2)
                 dTVD = dMD * cos((I1+I2) /2)
             else:
                 RF = (2 / beta) * tan(beta / 2)
@@ -154,8 +198,8 @@ class Mathematics:
                 # Приращения координат методом наименьшей кривизны
                 # =====================================================
         
-                dNorth = (dMD / 2) * (sin(I1) * cos(A1)+ sin(I2) * cos(A2)) * RF
-                dEast = (dMD / 2) * (sin(I1) * sin(A1)+ sin(I2) * sin(A2)) * RF
+                dNorth = (dMD / 2) * (sin(I1) * cos(dir1)+ sin(I2) * cos(dir2)) * RF
+                dEast = (dMD / 2) * (sin(I1) * sin(dir1)+ sin(I2) * sin(dir2)) * RF
                 dTVD = (dMD / 2 * (cos(I1) + cos(I2)) * RF )
     
             # =====================================================
@@ -185,87 +229,56 @@ class Mathematics:
             # Записываем рассчитанные координаты в таблицу
             table.setItem(
                 i,
-                3,
+                self.COL_INCLIN_NORTH,
                 QtWidgets.QTableWidgetItem(f"{north:.3f}")
             )
             
             table.setItem(
                 i,
-                4,
+                self.COL_INCLIN_EAST,
                 QtWidgets.QTableWidgetItem(f"{east:.3f}")
             )
             
             table.setItem(
                 i,
-                5,
+                self.COL_INCLIN_TVD,
                 QtWidgets.QTableWidgetItem(f"{tvd:.3f}")
+            )
+            table.setItem(
+                i,
+                self.COL_INCLIN_DIRECTIONAL,
+                QtWidgets.QTableWidgetItem(f"{dir2:.3f}")
             )
         # ==========================================================
         # Вывод результата
         # ==========================================================
     
-        print()
-    
-        print(
-            "Depth\tZenith\tAzimuth\tNorth\tEast\tTVD"
-        )
-    
-        for row in result:
-    
-            print(
-                f"{row['depth']:8.2f}\t"
-                f"{row['zenith']:7.2f}\t"
-                f"{row['azimuth']:8.2f}\t"
-                f"{row['north']:12.3f}\t"
-                f"{row['east']:12.3f}\t"
-                f"{row['tvd']:12.3f}"
-            )
+        # print()
 
+        # print(
+        #     "Depth\tZenith\tAzimuth\tNorth\tEast\tTVD"
+        # )
 
-    # def calculationDeviation(self):
-    #     """
-    #     Подготовка таблицы расчета отклонений.
-    #     """
+        # for row in result:
 
-    #     sourceTable = self.dialog.tableTargets
-    #     resultTable = self.dialog.tableCalculationDeviation
+        #     print(
+        #         f"{row['depth']:8.2f}\t"
+        #         f"{row['zenith']:7.2f}\t"
+        #         f"{row['azimuth']:8.2f}\t"
+        #         f"{row['north']:12.3f}\t"
+        #         f"{row['east']:12.3f}\t"
+        #         f"{row['tvd']:12.3f}"
+        #     )
 
-    #     # Очистить старые результаты
-    #     resultTable.setRowCount(0)
-
-    #     # Количество целей
-    #     rows = sourceTable.rowCount()
-
-    #     for row in range(rows):
-
-    #         # Добавляем новую строку
-    #         resultTable.insertRow(row)
-
-    #         # ID цели (0 столбец таблицы целей)
-    #         idItem = sourceTable.item(row, 0)
-
-    #         # TVD (3 столбец таблицы целей)
-    #         tvdItem = sourceTable.item(row, 3)
-
-    #         if tvdItem:
-    #             resultTable.setItem(
-    #                 row,
-    #                 0,
-    #                 QtWidgets.QTableWidgetItem(tvdItem.text())
-    #             )
-
-    #         if idItem:
-    #             resultTable.setItem(
-    #                 row,
-    #                 1,
-    #                 QtWidgets.QTableWidgetItem(idItem.text())
-    #             )
 
 
     def calculationDeviation(self):
         """
         Расчет координат траектории на глубине целей.
         """
+        # ==========================
+        # Номера столбцов
+        # ==========================
 
         sourceTable = self.dialog.tableTargets
         resultTable = self.dialog.tableCalculationDeviation
@@ -282,22 +295,22 @@ class Mathematics:
             resultTable.insertRow(row)
 
             # ID цели (0 столбец таблицы целей)
-            idItem = sourceTable.item(row, 0)
+            idItem = sourceTable.item(row, self.COL_TARGET_ID)
 
             # TVD (3 столбец таблицы целей)
-            tvdItem = sourceTable.item(row, 3)
+            tvdItem = sourceTable.item(row, self.COL_TARGET_TVD)
 
             if tvdItem:
                 resultTable.setItem(
                     row,
-                    0,
+                    self.COL_RESULT_TVD,
                     QtWidgets.QTableWidgetItem(tvdItem.text())
                 )
 
             if idItem:
                 resultTable.setItem(
                     row,
-                    1,
+                    self.COL_RESULT_ID,
                     QtWidgets.QTableWidgetItem(idItem.text())
                 )
 
@@ -311,7 +324,7 @@ class Mathematics:
 
             # Глубина цели
             targetTVD = float(
-                tableTargets.item(rowTarget, 0).text()
+                tableTargets.item(rowTarget, self.COL_RESULT_TVD).text()
             )
 
             # ----------------------------------------
@@ -320,16 +333,16 @@ class Mathematics:
 
             for row in range(tableInclin.rowCount() - 1):
 
-                tvd1 = float(tableInclin.item(row, 5).text())
-                tvd2 = float(tableInclin.item(row + 1, 5).text())
+                tvd1 = float(tableInclin.item(row, self.COL_INCLIN_TVD).text())
+                tvd2 = float(tableInclin.item(row + 1, self.COL_INCLIN_TVD).text())
 
                 if tvd1 <= targetTVD <= tvd2:
 
-                    north1 = float(tableInclin.item(row, 3).text())
-                    east1  = float(tableInclin.item(row, 4).text())
+                    north1 = float(tableInclin.item(row, self.COL_INCLIN_NORTH).text())
+                    east1  = float(tableInclin.item(row, self.COL_INCLIN_EAST).text())
 
-                    north2 = float(tableInclin.item(row + 1, 3).text())
-                    east2  = float(tableInclin.item(row + 1, 4).text())
+                    north2 = float(tableInclin.item(row + 1, self.COL_INCLIN_NORTH).text())
+                    east2  = float(tableInclin.item(row + 1, self.COL_INCLIN_EAST).text())
 
                     # ----------------------------------------
                     # Коэффициент интерполяции
@@ -344,20 +357,35 @@ class Mathematics:
                     north = north1 + k * (north2 - north1)
                     east  = east1 + k * (east2 - east1)
 
+                    targetNorth = float(
+                        sourceTable.item(rowTarget, self.COL_TARGET_NORTH).text()
+                    )
+
+                    targetEast = float(
+                        sourceTable.item(rowTarget, self.COL_TARGET_EAST).text()
+                    )
+                    deviation = sqrt(
+                        (targetNorth - north) ** 2 +
+                        (targetEast - east) ** 2
+                    )
                     # ----------------------------------------
                     # Запись в таблицу
                     # ----------------------------------------
 
                     tableTargets.setItem(
                         rowTarget,
-                        3,
+                        self.COL_RESULT_NORTH,
                         QtWidgets.QTableWidgetItem(f"{north:.3f}")
                     )
 
                     tableTargets.setItem(
                         rowTarget,
-                        4,
+                        self.COL_RESULT_EAST,
                         QtWidgets.QTableWidgetItem(f"{east:.3f}")
                     )
-
+                    tableTargets.setItem(
+                        rowTarget,
+                        self.COL_RESULT_DEVIATION,
+                        QtWidgets.QTableWidgetItem(f"{deviation:.3f}")
+                    )
                     break

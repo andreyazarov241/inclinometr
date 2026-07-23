@@ -420,7 +420,7 @@
      </widget>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Настройки</string>
+       <string>Рабочие слои</string>
       </attribute>
       <widget class="QPushButton" name="btnAddPositionLayer">
        <property name="geometry">
@@ -614,13 +614,13 @@
        <property name="geometry">
         <rect>
          <x>30</x>
-         <y>110</y>
+         <y>180</y>
          <width>401</width>
          <height>301</height>
         </rect>
        </property>
        <property name="columnCount">
-        <number>6</number>
+        <number>8</number>
        </property>
        <column>
         <property name="text">
@@ -637,9 +637,31 @@
          <string>Азимут GRID, град</string>
         </property>
        </column>
-       <column/>
-       <column/>
-       <column/>
+       <column>
+        <property name="text">
+         <string>Дирекционный угол</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Дата</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Север</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Восток</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>TVD</string>
+        </property>
+       </column>
       </widget>
       <widget class="QPushButton" name="btnCalculateInclinometry">
        <property name="geometry">
@@ -652,6 +674,16 @@
        </property>
        <property name="text">
         <string>Расчет инклинометрии</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="txtConvergenceMeridian">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>130</y>
+         <width>113</width>
+         <height>22</height>
+        </rect>
        </property>
       </widget>
      </widget>
@@ -669,7 +701,7 @@
         </rect>
        </property>
        <property name="columnCount">
-        <number>6</number>
+        <number>5</number>
        </property>
        <column>
         <property name="text">
@@ -679,11 +711,6 @@
        <column>
         <property name="text">
          <string>Цель</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Свойсива</string>
         </property>
        </column>
        <column>
@@ -698,7 +725,7 @@
        </column>
        <column>
         <property name="text">
-         <string>Отметка</string>
+         <string>TVD</string>
         </property>
        </column>
       </widget>
